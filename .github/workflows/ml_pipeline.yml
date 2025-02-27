@@ -1,0 +1,67 @@
+name: ML Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+          pip install black flake8 bandit pytest
+
+      - name: Check code formatting
+        run: |
+          source venv/bin/activate
+          black --check .
+
+      - name: Check code quality
+        run: |
+          source venv/bin/activate
+          flake8 . --max-line-length=88 --ignore=E203,W503
+
+      - name: Check code security
+        run: |
+          source venv/bin/activate
+          bandit -r .
+
+      - name: Prepare data
+        run: |
+          source venv/bin/activate
+          python main.py prepare
+
+      - name: Train model
+        run: |
+          source venv/bin/activate
+          python main.py train
+
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pytest tests/ -v
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-outputs
+          path: |
+            model_v*.joblib
+            X_train.csv
+            X_test.csv
+            y_train.csv
+            y_test.csv
