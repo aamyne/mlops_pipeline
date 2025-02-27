@@ -3,6 +3,7 @@
 import argparse
 import mlflow
 import sys
+import os
 from datetime import datetime
 from data_processing import prepare_data
 from model_training import train_model
@@ -31,15 +32,16 @@ def get_model_version():
 def run_full_pipeline(train_file: str, test_file: str, n_estimators: int = 10) -> None:
     """Execute the complete ML pipeline with MLflow tracking."""
     print("Running full pipeline...")
-
+    
+    # Create artifacts directory
+    os.makedirs("./artifacts", exist_ok=True)
+    
     # Setup MLflow and get model version
     experiment_id = setup_mlflow()
     model_version = get_model_version()
 
     # Start a new MLflow run
-    with mlflow.start_run(
-        experiment_id=experiment_id, run_name=f"Full_Pipeline_v{model_version}"
-    ):
+    with mlflow.start_run(experiment_id=experiment_id, run_name=f"Full_Pipeline_v{model_version}"):
         try:
             # Log input files and parameters
             mlflow.log_param("train_file", train_file)
@@ -47,7 +49,7 @@ def run_full_pipeline(train_file: str, test_file: str, n_estimators: int = 10) -
             mlflow.log_param("model_version", model_version)
             mlflow.log_param("n_estimators", n_estimators)
 
-            # Data preparation (called once)
+            # Data preparation
             print("🔹 Preparing data...")
             X_train, X_test, y_train, y_test = prepare_data(train_file, test_file)
             print("🔹 Data preparation complete")
@@ -62,8 +64,8 @@ def run_full_pipeline(train_file: str, test_file: str, n_estimators: int = 10) -
             metrics = evaluate_model(model, X_test, y_test)
             print("🔹 Evaluation complete")
 
-            # Save the model
-            save_model(model, filename=f"model_v{model_version}.joblib")
+            # Save the model with a relative path
+            save_model(model, filename=f"artifacts/model_v{model_version}.joblib")
 
             print(f"🔹 Pipeline completed successfully for version {model_version}")
 
@@ -74,21 +76,19 @@ def run_full_pipeline(train_file: str, test_file: str, n_estimators: int = 10) -
 
 def main() -> None:
     """Main function to run the pipeline."""
-    parser = argparse.ArgumentParser(
-        description="Machine Learning Pipeline with Bagging"
-    )
+    parser = argparse.ArgumentParser(description="Machine Learning Pipeline with Bagging")
     parser.add_argument(
         "action",
         type=str,
         nargs="?",
         default="all",
-        help="Action to perform: 'all' to run the complete pipeline.",
+        help="Action to perform: 'all' to run the complete pipeline."
     )
     parser.add_argument(
         "--n_estimators",
         type=int,
         default=10,
-        help="Number of estimators for the Bagging model.",
+        help="Number of estimators for the Bagging model."
     )
     args = parser.parse_args()
 
