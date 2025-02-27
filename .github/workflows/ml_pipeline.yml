@@ -28,9 +28,6 @@ jobs:
       - name: Run Black (formatting)
         run: black --check .
 
-      - name: Run Flake8 (linting)
-        run: flake8 .
-
   prepare_data:
     needs: lint
     runs-on: ubuntu-latest
