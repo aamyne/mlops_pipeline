@@ -10,83 +10,56 @@ on:
 
 jobs:
   lint:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        # Checks out the repository code
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+        # Sets up Python 3.12 environment
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        # Upgrades pip and installs dependencies from requirements.txt
 
-    - name: Install linting tools
-      run: pip install black flake8
+      - name: Install linting tools
+        run: pip install black flake8
+        # Explicitly installs Black and Flake8 to fix the lint job failure
 
-    - name: Run Black (formatting)
-      run: black --check .
+      - name: Run Black (formatting)
+        run: black --check .
+        # Checks code formatting with Black
 
-    - name: Run Flake8 (linting)
-      run: flake8 .
+      - name: Run Flake8 (linting)
+        run: flake8 .
+        # Runs Flake8 for linting
 
-  prepare_data:
+  run_pipeline:
     needs: lint
+    # Ensures this job runs only after lint succeeds
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        # Checks out the repository code
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
+        # Sets up Python 3.12 environment
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+        # Installs dependencies from requirements.txt
 
-      - name: Prepare data
-        run: python main.py --prepare
-
-  train_model:
-    needs: prepare_data
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Train model
-        run: python main.py --train
-
-  validate_model:
-    needs: train_model
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Validate model
-        run: python main.py --validate
+      - name: Run full pipeline
+        run: python main.py all
+        # Runs the full ML pipeline by passing "all" as the action
