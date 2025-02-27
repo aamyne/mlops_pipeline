@@ -6,7 +6,9 @@ from sklearn.preprocessing import LabelEncoder
 from typing import Tuple
 
 
-def prepare_data(train_file: str, test_file: str) -> Tuple[pd.DataFrame, pd.DataFrame, np.ndarray, np.ndarray]:
+def prepare_data(
+    train_file: str, test_file: str
+) -> Tuple[pd.DataFrame, pd.DataFrame, np.ndarray, np.ndarray]:
     """
     Prepare training and testing data with specific feature selection based on SHAP values.
 
@@ -40,7 +42,9 @@ def prepare_data(train_file: str, test_file: str) -> Tuple[pd.DataFrame, pd.Data
         raise FileNotFoundError(f"Could not find data files: {e}")
 
     # Check for missing columns
-    missing_cols = [col for col in selected_features + ["Churn"] if col not in df_train.columns]
+    missing_cols = [
+        col for col in selected_features + ["Churn"] if col not in df_train.columns
+    ]
     if missing_cols:
         raise ValueError(f"Missing columns in training data: {missing_cols}")
 
@@ -57,18 +61,18 @@ def prepare_data(train_file: str, test_file: str) -> Tuple[pd.DataFrame, pd.Data
         "Total intl minutes",
         "Total intl calls",
         "Total eve minutes",
-        "Number vmail messages"
+        "Number vmail messages",
     ]
-    
+
     for feature in numeric_features:
-        X_train[feature] = pd.to_numeric(X_train[feature], errors='coerce')
-        X_test[feature] = pd.to_numeric(X_test[feature], errors='coerce')
+        X_train[feature] = pd.to_numeric(X_train[feature], errors="coerce")
+        X_test[feature] = pd.to_numeric(X_test[feature], errors="coerce")
 
     # Encode categorical features
     categorical_features = ["International plan", "Voice mail plan"]
     for feature in categorical_features:
-        X_train[feature] = X_train[feature].astype('category')
-        X_test[feature] = X_test[feature].astype('category')
+        X_train[feature] = X_train[feature].astype("category")
+        X_test[feature] = X_test[feature].astype("category")
 
     # Convert target to numeric
     le = LabelEncoder()

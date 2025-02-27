@@ -37,7 +37,9 @@ def run_full_pipeline(train_file: str, test_file: str, n_estimators: int = 10) -
     model_version = get_model_version()
 
     # Start a new MLflow run
-    with mlflow.start_run(experiment_id=experiment_id, run_name=f"Full_Pipeline_v{model_version}"):
+    with mlflow.start_run(
+        experiment_id=experiment_id, run_name=f"Full_Pipeline_v{model_version}"
+    ):
         try:
             # Log input files and parameters
             mlflow.log_param("train_file", train_file)
@@ -72,19 +74,21 @@ def run_full_pipeline(train_file: str, test_file: str, n_estimators: int = 10) -
 
 def main() -> None:
     """Main function to run the pipeline."""
-    parser = argparse.ArgumentParser(description="Machine Learning Pipeline with Bagging")
+    parser = argparse.ArgumentParser(
+        description="Machine Learning Pipeline with Bagging"
+    )
     parser.add_argument(
         "action",
         type=str,
         nargs="?",
         default="all",
-        help="Action to perform: 'all' to run the complete pipeline."
+        help="Action to perform: 'all' to run the complete pipeline.",
     )
     parser.add_argument(
         "--n_estimators",
         type=int,
         default=10,
-        help="Number of estimators for the Bagging model."
+        help="Number of estimators for the Bagging model.",
     )
     args = parser.parse_args()
 

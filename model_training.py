@@ -8,7 +8,9 @@ import pandas as pd
 from typing import Any
 
 
-def train_model(X_train: Any, y_train: Any, n_estimators: int = 10) -> BaggingClassifier:
+def train_model(
+    X_train: Any, y_train: Any, n_estimators: int = 10
+) -> BaggingClassifier:
     """
     Train a Bagging model with Decision Trees as the base estimator.
 
@@ -27,7 +29,7 @@ def train_model(X_train: Any, y_train: Any, n_estimators: int = 10) -> BaggingCl
     model = BaggingClassifier(
         estimator=DecisionTreeClassifier(),  # Compatible with scikit-learn 1.2.0+
         n_estimators=n_estimators,
-        random_state=42
+        random_state=42,
     )
 
     # Train the model
