@@ -9,3 +9,5 @@ uvicorn
 joblib
 fastapi
 uvicorn
+black
+flake8
