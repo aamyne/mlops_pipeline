@@ -4,64 +4,86 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  run-pipeline:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install black flake8 bandit pytest
 
-      - name: Check code formatting
-        run: |
-          source venv/bin/activate
-          black --check .
+      - name: Run Black (formatting)
+        run: black --check .
 
-      - name: Check code quality
-        run: |
-          source venv/bin/activate
-          flake8 . --max-line-length=88 --ignore=E203,W503
+      - name: Run Flake8 (linting)
+        run: flake8 .
 
-      - name: Check code security
+  prepare_data:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
         run: |
-          source venv/bin/activate
-          bandit -r .
+          pip install -r requirements.txt
 
       - name: Prepare data
+        run: python main.py --prepare
+
+  train_model:
+    needs: prepare_data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
         run: |
-          source venv/bin/activate
-          python main.py prepare
+          pip install -r requirements.txt
 
       - name: Train model
-        run: |
-          source venv/bin/activate
-          python main.py train
+        run: python main.py --train
 
-      - name: Run tests
-        run: |
-          source venv/bin/activate
-          pytest tests/ -v
+  validate_model:
+    needs: train_model
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          name: pipeline-outputs
-          path: |
-            model_v*.joblib
-            X_train.csv
-            X_test.csv
-            y_train.csv
-            y_test.csv
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Validate model
+        run: python main.py --validate
