@@ -3,10 +3,10 @@ name: ML Pipeline Automation
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   ml-pipeline:
@@ -21,17 +21,14 @@ jobs:
         with:
           python-version: '3.12'
 
-      # Job 1: Install dependencies in a virtual environment
       - name: Create virtual environment and install dependencies
         run: |
           python -m venv venv
           source venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          # Install tools: Replace flake8 with pylint
           pip install pylint black bandit isort pytest
 
-      # Job 2: Code check (formatting, quality, security)
       - name: Format code with Black
         run: |
           source venv/bin/activate
@@ -49,17 +46,16 @@ jobs:
       - name: Sort imports with isort
         run: |
           source venv/bin/activate
-          isort --check-only --diff . || true  # Warnings only
+          isort --check-only --diff . || true
       - name: Lint with Pylint
         run: |
           source venv/bin/activate
-          pylint *.py --max-line-length=120 --disable=C0301 || true  # Warnings only
+          pylint *.py --max-line-length=120 --disable=C0301 || true
       - name: Check security with Bandit
         run: |
           source venv/bin/activate
-          bandit -r . -ll || true  # Warnings only
+          bandit -r . -ll || true
 
-      # Job 3: Prepare the data
       - name: Prepare data
         run: |
           source venv/bin/activate
@@ -67,7 +63,6 @@ jobs:
         env:
           MLFLOW_TRACKING_URI: sqlite:///mlflow.db
 
-      # Job 4: Train the model
       - name: Train model
         run: |
           source venv/bin/activate
@@ -75,13 +70,11 @@ jobs:
         env:
           MLFLOW_TRACKING_URI: sqlite:///mlflow.db
 
-      # Job 5: Run tests
       - name: Run tests
         run: |
           source venv/bin/activate
-          pytest tests/ -v || true  # Run tests, don't fail if none exist
+          pytest tests/ -v || true
 
-      # Upload MLflow artifacts
       - name: Upload MLflow artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,7 +86,6 @@ jobs:
             model.joblib
           retention-days: 7
 
-      # Upload MLflow database
       - name: Upload MLflow database
         if: always()
         uses: actions/upload-artifact@v4
