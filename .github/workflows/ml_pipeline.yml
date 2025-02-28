@@ -1,24 +1,97 @@
-name: ML Pipeline
+name: ML Pipeline Automation
 
+# Trigger the workflow on push or pull request to the main branch
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
-  run_pipeline:
-    runs-on: ubuntu-latest
+  ml-pipeline:
+    runs-on: ubuntu-latest  # Use Ubuntu runner
+
     steps:
-      - name: Checkout code
+      # Checkout the repository code
+      - name: Checkout repository
         uses: actions/checkout@v3
+
+      # Set up Python environment
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run full pipeline
-        run: python main.py all
+          python-version: '3.12'  # Match your local version
+
+      # Job 1: Install dependencies in a virtual environment
+      - name: Create virtual environment and install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # Install additional tools for code checking
+          pip install flake8 black bandit isort
+
+      # Job 2: Code check (formatting, quality, security)
+      - name: Check code formatting with Black
+        run: |
+          source venv/bin/activate
+          black --check . --line-length 120
+      - name: Sort imports with isort
+        run: |
+          source venv/bin/activate
+          isort --check-only --diff .
+      - name: Lint with flake8
+        run: |
+          source venv/bin/activate
+          flake8 . --max-line-length=120 --ignore=E203,W503
+      - name: Check security with Bandit
+        run: |
+          source venv/bin/activate
+          bandit -r . -ll || true  # Run but don't fail workflow (warnings only)
+
+      # Job 3: Prepare the data
+      - name: Prepare data
+        run: |
+          source venv/bin/activate
+          python -c "from main import prepare_data_wrapper; prepare_data_wrapper('churn-bigml-80.csv', 'churn-bigml-20.csv')"
+        env:
+          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
+
+      # Job 4: Train the model
+      - name: Train model
+        run: |
+          source venv/bin/activate
+          python -c "from main import train_model_wrapper; train_model_wrapper()"
+        env:
+          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
+
+      # Job 5: Run tests
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pip install pytest
+          pytest tests/ -v || true  # Run tests, don't fail if none exist yet
+
+      # Upload MLflow artifacts
+      - name: Upload MLflow artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: mlflow-artifacts
+          path: |
+            *.png
+            *.csv
+            model.joblib
+          retention-days: 7
+
+      # Upload MLflow database
+      - name: Upload MLflow database
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: mlflow-db
+          path: mlflow.db
+          retention-days: 7

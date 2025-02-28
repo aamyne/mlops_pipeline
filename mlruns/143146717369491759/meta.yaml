@@ -1,0 +1,6 @@
+artifact_location: mlflow-artifacts:/143146717369491759
+creation_time: 1740736333431
+experiment_id: '143146717369491759'
+last_update_time: 1740736333431
+lifecycle_stage: active
+name: Churn Prediction - BaggingClassifier

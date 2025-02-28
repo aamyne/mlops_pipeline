@@ -6,13 +6,13 @@ import mlflow
 from typing import Any
 
 
-def save_model(model: Any, filename: str = "artifacts/model.joblib") -> None:
+def save_model(model: Any, filename: str = "model.joblib") -> None:
     """
     Save a model using joblib and log it with MLflow.
 
     Args:
         model: Trained model to save.
-        filename (str): Name of the file to save the model to (default: "artifacts/model.joblib").
+        filename (str): Name of the file to save the model to (default: "model.joblib").
 
     Raises:
         ValueError: If the model is None.
@@ -22,20 +22,20 @@ def save_model(model: Any, filename: str = "artifacts/model.joblib") -> None:
         raise ValueError("Model cannot be None")
 
     try:
-        os.makedirs(os.path.dirname(filename), exist_ok=True)  # Create directory if needed
         joblib.dump(model, filename)
         print(f"Model saved as {filename}")
+        # Log artifact in the current run without creating a new one
         mlflow.log_artifact(filename)
     except Exception as e:
         raise IOError(f"Failed to save model to {filename}: {e}")
 
 
-def load_model(filename: str = "artifacts/model.joblib") -> Any:
+def load_model(filename: str = "model.joblib") -> Any:
     """
     Load a model using joblib.
 
     Args:
-        filename (str): Name of the file to load the model from (default: "artifacts/model.joblib").
+        filename (str): Name of the file to load the model from (default: "model.joblib").
 
     Returns:
         The loaded model object.
