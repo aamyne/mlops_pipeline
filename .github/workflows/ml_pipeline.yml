@@ -4,10 +4,10 @@ name: ML Pipeline Automation
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   ml-pipeline:
@@ -16,11 +16,11 @@ jobs:
     steps:
       # Checkout the repository code
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Updated to v4 for consistency
 
       # Set up Python environment
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5  # Updated to v5 for latest features
         with:
           python-version: '3.12'  # Match your local version
 
@@ -31,8 +31,8 @@ jobs:
           source venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          # Install additional tools for code checking
-          pip install flake8 black bandit isort
+          # Install additional tools for code checking and testing
+          pip install flake8 black bandit isort pytest
 
       # Job 2: Code check (formatting, quality, security)
       - name: Check code formatting with Black
@@ -50,7 +50,7 @@ jobs:
       - name: Check security with Bandit
         run: |
           source venv/bin/activate
-          bandit -r . -ll || true  # Run but don't fail workflow (warnings only)
+          bandit -r . -ll || true  # Warnings only, no failure
 
       # Job 3: Prepare the data
       - name: Prepare data
@@ -72,13 +72,12 @@ jobs:
       - name: Run tests
         run: |
           source venv/bin/activate
-          pip install pytest
           pytest tests/ -v || true  # Run tests, don't fail if none exist yet
 
-      # Upload MLflow artifacts
+      # Upload MLflow artifacts (updated to v4)
       - name: Upload MLflow artifacts
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
           path: |
@@ -87,10 +86,10 @@ jobs:
             model.joblib
           retention-days: 7
 
-      # Upload MLflow database
+      # Upload MLflow database (updated to v4)
       - name: Upload MLflow database
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mlflow-db
           path: mlflow.db
