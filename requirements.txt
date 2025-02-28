@@ -13,3 +13,4 @@ uvicorn
 black
 pylint
 isort
+shap
