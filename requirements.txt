@@ -10,5 +10,5 @@ joblib
 fastapi
 uvicorn
 black
-flake8
+pylint
 isort
