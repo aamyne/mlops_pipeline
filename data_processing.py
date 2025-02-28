@@ -57,18 +57,18 @@ def prepare_data(train_file: str, test_file: str) -> Tuple[pd.DataFrame, pd.Data
         "Total intl minutes",
         "Total intl calls",
         "Total eve minutes",
-        "Number vmail messages"
+        "Number vmail messages",
     ]
-    
+
     for feature in numeric_features:
-        X_train[feature] = pd.to_numeric(X_train[feature], errors='coerce')
-        X_test[feature] = pd.to_numeric(X_test[feature], errors='coerce')
+        X_train[feature] = pd.to_numeric(X_train[feature], errors="coerce")
+        X_test[feature] = pd.to_numeric(X_test[feature], errors="coerce")
 
     # Encode categorical features
     categorical_features = ["International plan", "Voice mail plan"]
     for feature in categorical_features:
-        X_train[feature] = X_train[feature].astype('category')
-        X_test[feature] = X_test[feature].astype('category')
+        X_train[feature] = X_train[feature].astype("category")
+        X_test[feature] = X_test[feature].astype("category")
         # Convert categorical features to numerical codes for scikit-learn compatibility
         X_train[feature] = X_train[feature].cat.codes
         X_test[feature] = X_test[feature].cat.codes
