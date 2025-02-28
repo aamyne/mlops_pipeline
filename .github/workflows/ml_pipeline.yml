@@ -3,10 +3,10 @@ name: ML Pipeline Automation
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   ml-pipeline:
@@ -28,7 +28,8 @@ jobs:
           source venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 black bandit isort pytest
+          # Install tools: Replace flake8 with pylint
+          pip install pylint black bandit isort pytest
 
       # Job 2: Code check (formatting, quality, security)
       - name: Format code with Black
@@ -36,7 +37,7 @@ jobs:
           source venv/bin/activate
           black . --line-length 120
       - name: Commit formatting changes
-        if: github.event_name == 'push'  # Only commit on push, not PRs
+        if: github.event_name == 'push'
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
@@ -49,10 +50,10 @@ jobs:
         run: |
           source venv/bin/activate
           isort --check-only --diff . || true  # Warnings only
-      - name: Lint with flake8
+      - name: Lint with Pylint
         run: |
           source venv/bin/activate
-          flake8 . --max-line-length=120 --ignore=E203,W503 || true  # Warnings only
+          pylint *.py --max-line-length=120 --disable=C0301 || true  # Warnings only
       - name: Check security with Bandit
         run: |
           source venv/bin/activate
