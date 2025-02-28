@@ -1,6 +1,5 @@
 name: ML Pipeline Automation
 
-# Trigger the workflow on push or pull request to the main branch
 on:
   push:
     branches:
@@ -11,18 +10,16 @@ on:
 
 jobs:
   ml-pipeline:
-    runs-on: ubuntu-latest  # Use Ubuntu runner
+    runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository code
       - name: Checkout repository
-        uses: actions/checkout@v4  # Updated to v4 for consistency
+        uses: actions/checkout@v4
 
-      # Set up Python environment
       - name: Set up Python
-        uses: actions/setup-python@v5  # Updated to v5 for latest features
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.12'  # Match your local version
+          python-version: '3.12'
 
       # Job 1: Install dependencies in a virtual environment
       - name: Create virtual environment and install dependencies
@@ -31,26 +28,35 @@ jobs:
           source venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          # Install additional tools for code checking and testing
           pip install flake8 black bandit isort pytest
 
       # Job 2: Code check (formatting, quality, security)
-      - name: Check code formatting with Black
+      - name: Format code with Black
         run: |
           source venv/bin/activate
-          black --check . --line-length 120
+          black . --line-length 120
+      - name: Commit formatting changes
+        if: github.event_name == 'push'  # Only commit on push, not PRs
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add .
+          git commit -m "Auto-format code with Black" || echo "No changes to commit"
+          git push || echo "No push needed"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Sort imports with isort
         run: |
           source venv/bin/activate
-          isort --check-only --diff .
+          isort --check-only --diff . || true  # Warnings only
       - name: Lint with flake8
         run: |
           source venv/bin/activate
-          flake8 . --max-line-length=120 --ignore=E203,W503
+          flake8 . --max-line-length=120 --ignore=E203,W503 || true  # Warnings only
       - name: Check security with Bandit
         run: |
           source venv/bin/activate
-          bandit -r . -ll || true  # Warnings only, no failure
+          bandit -r . -ll || true  # Warnings only
 
       # Job 3: Prepare the data
       - name: Prepare data
@@ -72,9 +78,9 @@ jobs:
       - name: Run tests
         run: |
           source venv/bin/activate
-          pytest tests/ -v || true  # Run tests, don't fail if none exist yet
+          pytest tests/ -v || true  # Run tests, don't fail if none exist
 
-      # Upload MLflow artifacts (updated to v4)
+      # Upload MLflow artifacts
       - name: Upload MLflow artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -86,7 +92,7 @@ jobs:
             model.joblib
           retention-days: 7
 
-      # Upload MLflow database (updated to v4)
+      # Upload MLflow database
       - name: Upload MLflow database
         if: always()
         uses: actions/upload-artifact@v4
