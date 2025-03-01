@@ -60,9 +60,7 @@ jobs:
         run: |
           source venv/bin/activate
           python main.py all
-        env:
-          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
-
+          
       - name: Run tests
         run: |
           source venv/bin/activate
