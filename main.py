@@ -57,9 +57,10 @@ def run_full_pipeline(train_file: str, test_file: str) -> None:
             y_test_np = y_test
 
             # Dataset Statistics Summary
+            stats_path = "dataset_stats.csv"
             stats = X_train_final.describe().T
-            stats.to_csv('dataset_stats.csv')
-            mlflow.log_artifact('dataset_stats.csv', artifact_path="data_stats")
+            stats.to_csv(stats_path)
+            mlflow.log_artifact(stats_path, artifact_path="data_stats")
             print("🔹 Data preparation complete")
 
             # Job 4: Train the model
@@ -128,7 +129,7 @@ def run_full_pipeline(train_file: str, test_file: str) -> None:
             plt.title('Feature Importance Plot')
             plt.savefig('feature_importance.png')
             plt.close()
-            mlflow.log_artifact('feature_importance.png')
+            mlflow.log_artifact('feature_importance.png', artifact_path="plots")
 
             # Validation Metrics vs. Number of Estimators
             val_accuracies = []
@@ -150,7 +151,7 @@ def run_full_pipeline(train_file: str, test_file: str) -> None:
             plt.legend()
             plt.savefig('accuracy_vs_estimators.png')
             plt.close()
-            mlflow.log_artifact('accuracy_vs_estimators.png')
+            mlflow.log_artifact('accuracy_vs_estimators.png', artifact_path="plots")
 
             plt.figure(figsize=(10, 6))
             plt.plot(range(1, params['n_estimators'] + 1), val_loglosses, label='Validation Log Loss')
@@ -160,7 +161,7 @@ def run_full_pipeline(train_file: str, test_file: str) -> None:
             plt.legend()
             plt.savefig('logloss_vs_estimators.png')
             plt.close()
-            mlflow.log_artifact('logloss_vs_estimators.png')
+            mlflow.log_artifact('logloss_vs_estimators.png', artifact_path="plots")
 
             # Learning Curve Plot
             train_sizes, train_scores, val_scores = learning_curve(
@@ -177,7 +178,7 @@ def run_full_pipeline(train_file: str, test_file: str) -> None:
             plt.legend()
             plt.savefig('learning_curve.png')
             plt.close()
-            mlflow.log_artifact('learning_curve.png')
+            mlflow.log_artifact('learning_curve.png', artifact_path="plots")
 
             # SHAP Summary Plot
             explainer = shap.TreeExplainer(model.estimators_[0])
@@ -186,7 +187,7 @@ def run_full_pipeline(train_file: str, test_file: str) -> None:
             shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
             plt.savefig('shap_summary.png')
             plt.close()
-            mlflow.log_artifact('shap_summary.png')
+            mlflow.log_artifact('shap_summary.png', artifact_path="plots")
 
             # Evaluate the model
             print("🔹 Evaluating model...")
@@ -210,7 +211,7 @@ def run_full_pipeline(train_file: str, test_file: str) -> None:
             plt.title('Confusion Matrix')
             plt.savefig('confusion_matrix.png')
             plt.close()
-            mlflow.log_artifact('confusion_matrix.png')
+            mlflow.log_artifact('confusion_matrix.png', artifact_path="plots")
 
             # ROC Curve Plot
             fpr, tpr, _ = roc_curve(y_test_np, y_pred_proba[:, 1])
@@ -224,22 +225,23 @@ def run_full_pipeline(train_file: str, test_file: str) -> None:
             plt.legend(loc='lower right')
             plt.savefig('roc_curve.png')
             plt.close()
-            mlflow.log_artifact('roc_curve.png')
+            mlflow.log_artifact('roc_curve.png', artifact_path="plots")
 
             # Test Predictions CSV
+            pred_path = "test_predictions.csv"
             pred_df = pd.DataFrame({
                 'true_label': y_test_np,
                 'predicted_label': y_pred,
                 'predicted_prob_0': y_pred_proba[:, 0],
                 'predicted_prob_1': y_pred_proba[:, 1]
             })
-            pred_df.to_csv('test_predictions.csv', index=False)
-            mlflow.log_artifact('test_predictions.csv')
+            pred_df.to_csv(pred_path, index=False)
+            mlflow.log_artifact(pred_path, artifact_path="predictions")
 
             # Save and log the model with input example
             save_model(model, "model.joblib")
             input_example = X_train_final_np[:1]  # Use first row as example
-            mlflow.sklearn.log_model(model, "model", input_example=input_example)
+            mlflow.sklearn.log_model(model, artifact_path="models", input_example=input_example)
 
         except Exception as e:
             print(f"❌ Error in pipeline: {str(e)}")
