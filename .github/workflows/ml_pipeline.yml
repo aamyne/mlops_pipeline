@@ -56,17 +56,10 @@ jobs:
           source venv/bin/activate
           bandit -r . -ll || true
 
-      - name: Prepare data
+      - name: Run full pipeline
         run: |
           source venv/bin/activate
-          python -c "from main import prepare_data_wrapper; prepare_data_wrapper('churn-bigml-80.csv', 'churn-bigml-20.csv')"
-        env:
-          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
-
-      - name: Train model
-        run: |
-          source venv/bin/activate
-          python -c "from main import train_model_wrapper; train_model_wrapper()"
+          python main.py all
         env:
           MLFLOW_TRACKING_URI: sqlite:///mlflow.db
 
